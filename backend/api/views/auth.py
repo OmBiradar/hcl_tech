@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class RegisterView(APIView):
-    """User registration endpoint"""
+    """User registration endpoint - patients only"""
     permission_classes = [AllowAny]
     
     def post(self, request):
@@ -28,6 +28,14 @@ class RegisterView(APIView):
             )
         
         try:
+            # Only allow patient registration
+            role = serializer.validated_data.get('role', 'patient')
+            if role != 'patient':
+                return Response(
+                    {'error': 'Only patients can register. Doctors are pre-loaded in the system.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
             # Check if user already exists
             if User.objects(email=serializer.validated_data['email']):
                 return Response(
@@ -38,7 +46,7 @@ class RegisterView(APIView):
             # Create new user
             user = User(
                 email=serializer.validated_data['email'],
-                role=serializer.validated_data.get('role', 'patient'),
+                role='patient',
                 consent_given=serializer.validated_data.get('consent_given', False)
             )
             user.set_password(serializer.validated_data['password'])

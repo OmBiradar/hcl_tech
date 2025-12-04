@@ -108,3 +108,37 @@ class ProviderProfile(Document):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
         }
+
+
+class Appointment(Document):
+    """Appointment booking document"""
+    patient_id = StringField(required=True)  # User ID of patient
+    provider_id = StringField(required=True)  # User ID of provider/doctor
+    appointment_date = DateTimeField(required=True)  # Date and time of appointment
+    reason = StringField(default='')  # Reason for appointment
+    status = StringField(default='pending', choices=['pending', 'confirmed', 'completed', 'cancelled'])
+    notes = StringField(default='')  # Additional notes
+    patient_email = StringField(default='')  # Email of patient (for reference)
+    provider_email = StringField(default='')  # Email of provider (for reference)
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
+    
+    meta = {
+        'collection': 'appointments',
+        'indexes': ['patient_id', 'provider_id', 'appointment_date', 'status', 'created_at']
+    }
+    
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'patient_id': self.patient_id,
+            'provider_id': self.provider_id,
+            'appointment_date': self.appointment_date.isoformat(),
+            'reason': self.reason,
+            'status': self.status,
+            'notes': self.notes,
+            'patient_email': self.patient_email,
+            'provider_email': self.provider_email,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
+        }
