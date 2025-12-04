@@ -25,7 +25,6 @@ const LoginForm = ({ onToggleForm }) => {
 
   return (
     <div className="login-container">
-      <div className="logo-placeholder">150 x 150</div>
       <h2>Login</h2>
       
       {error && <div className="error-message">{error}</div>}

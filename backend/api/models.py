@@ -120,6 +120,7 @@ class Appointment(Document):
     notes = StringField(default='')  # Additional notes
     patient_email = StringField(default='')  # Email of patient (for reference)
     provider_email = StringField(default='')  # Email of provider (for reference)
+    patient_stats = DictField(default={})  # Patient physical stats at time of booking
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
     
@@ -139,6 +140,7 @@ class Appointment(Document):
             'notes': self.notes,
             'patient_email': self.patient_email,
             'provider_email': self.provider_email,
+            'patient_stats': self.patient_stats,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
         }

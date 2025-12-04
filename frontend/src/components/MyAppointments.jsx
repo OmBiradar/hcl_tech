@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import './MyAppointments.css';
 
-function MyAppointments({ onBackToDashboard }) {
+function MyAppointments({ onBackToDashboard, onNavigateToHome, onNavigateToBooking, onLogout }) {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,25 +61,36 @@ function MyAppointments({ onBackToDashboard }) {
   };
 
   return (
-    <div className="my-appointments-container">
-      <div className="appointments-header">
-        <h2>My Appointments</h2>
-        <button className="back-btn" onClick={onBackToDashboard}>
-          ← Back to Dashboard
-        </button>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-
-      {loading ? (
-        <div className="loading-message">Loading your appointments...</div>
-      ) : appointments.length === 0 ? (
-        <div className="no-appointments">
-          <p>You don't have any appointments yet.</p>
-          <p>Book your first appointment to get started!</p>
+    <div className="dashboard-container">
+      <nav className="navbar">
+        <h1>HCL HealthLink</h1>
+        <div className="nav-links">
+          <button onClick={onNavigateToHome}>Home</button>
+          <button onClick={onNavigateToBooking}>
+            Book Appointment
+          </button>
+          <button className="active" onClick={onBackToDashboard}>
+            My Appointments
+          </button>
+          <button onClick={onLogout} className="logout-btn">Logout</button>
         </div>
-      ) : (
-        <div className="appointments-list">
+      </nav>
+
+      <div className="dashboard-content">
+        <div className="health-info-section">
+          <h2><strong>My Appointments</strong></h2>
+
+        {error && <div className="error-message">{error}</div>}
+
+        {loading ? (
+          <div className="loading-message">Loading your appointments...</div>
+        ) : appointments.length === 0 ? (
+          <div className="no-appointments">
+            <p>You don't have any appointments yet.</p>
+            <p>Book your first appointment to get started!</p>
+          </div>
+        ) : (
+          <div className="appointments-list">
           {appointments.map((appointment) => (
             <div key={appointment.id} className="appointment-card">
               <div className="appointment-card-header">
@@ -130,6 +141,8 @@ function MyAppointments({ onBackToDashboard }) {
           ))}
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }

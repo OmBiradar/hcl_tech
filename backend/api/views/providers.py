@@ -18,7 +18,23 @@ class ProviderListView(APIView):
     def get(self, request):
         try:
             providers = ProviderProfile.objects()
-            providers_data = [p.to_dict() for p in providers]
+            providers_data = []
+            
+            for p in providers:
+                provider_dict = p.to_dict()
+                # Get the user's email and extract name
+                user = User.objects(id=p.user_id).first()
+                if user:
+                    # Extract name from email (e.g., dr.smith@hospital.com -> Dr. Smith)
+                    email_name = user.email.split('@')[0]  # dr.smith
+                    name_parts = email_name.split('.')
+                    if len(name_parts) > 1:
+                        # Format as "Dr. LastName" (capitalize last part)
+                        name = f"Dr. {name_parts[-1].capitalize()}"
+                    else:
+                        name = f"Dr. {email_name.capitalize()}"
+                    provider_dict['doctor_name'] = name
+                providers_data.append(provider_dict)
             
             return Response(
                 {'providers': providers_data, 'count': len(providers_data)},

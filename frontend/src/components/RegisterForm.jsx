@@ -40,7 +40,6 @@ const RegisterForm = ({ onToggleForm }) => {
 
   return (
     <div className="login-container">
-      <div className="logo-placeholder">150 x 150</div>
       <h2>Register</h2>
       
       {error && <div className="error-message">{error}</div>}

@@ -158,6 +158,7 @@ class AppointmentCreateView(APIView):
                 status='pending',
                 patient_email=user.email,
                 provider_email=provider.email,
+                patient_stats=request.data.get('patient_stats', {}),
             )
             appointment.save()
             

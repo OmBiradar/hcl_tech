@@ -25,7 +25,7 @@ function AppContent() {
           )}
           <div className="preview-section">
             <div className="preview-overlay">
-              <h2>Please login to access the Healthcare Portal</h2>
+              <h2>HCL HealthLink</h2>
             </div>
           </div>
         </>

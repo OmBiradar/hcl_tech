@@ -73,8 +73,33 @@ function DoctorDashboard({ onLogout }) {
     }
   };
 
-  const getStatusBadgeClass = (status) => {
-    return `status-badge status-${status}`;
+  const renderPatientStats = (appointment) => {
+    if (!appointment.patient_stats || Object.keys(appointment.patient_stats).length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="patient-stats">
+        <strong>📊 Patient Stats:</strong>
+        <div className="stats-details">
+          {appointment.patient_stats.steps && (
+            <span>👟 {appointment.patient_stats.steps} steps</span>
+          )}
+          {appointment.patient_stats.activeTime && (
+            <span>⏱️ {appointment.patient_stats.activeTime} mins</span>
+          )}
+          {appointment.patient_stats.calories && (
+            <span>🔥 {appointment.patient_stats.calories} kcal</span>
+          )}
+          {appointment.patient_stats.distance && (
+            <span>📍 {appointment.patient_stats.distance} km</span>
+          )}
+          {appointment.patient_stats.sleepHours && (
+            <span>😴 {appointment.patient_stats.sleepHours}h {appointment.patient_stats.sleepMinutes || 0}m</span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const formatDate = (dateString) => {
@@ -89,6 +114,22 @@ function DoctorDashboard({ onLogout }) {
     });
   };
 
+  const getStatusBadgeClass = (status) => {
+    const baseClass = 'status-badge';
+    switch (status) {
+      case 'pending':
+        return `${baseClass} status-pending`;
+      case 'confirmed':
+        return `${baseClass} status-confirmed`;
+      case 'completed':
+        return `${baseClass} status-completed`;
+      case 'cancelled':
+        return `${baseClass} status-cancelled`;
+      default:
+        return baseClass;
+    }
+  };
+
   const upcomingAppointments = appointments.filter(apt =>
     new Date(apt.appointment_date) > new Date() &&
     ['pending', 'confirmed'].includes(apt.status)
@@ -99,132 +140,229 @@ function DoctorDashboard({ onLogout }) {
     apt.status === 'completed'
   );
 
+  const pendingAppointments = appointments.filter(apt => apt.status === 'pending');
+  const confirmedAppointments = appointments.filter(apt => apt.status === 'confirmed');
+  const completedAppointments = appointments.filter(apt => apt.status === 'completed');
+  const cancelledAppointments = appointments.filter(apt => apt.status === 'cancelled');
+
   const pendingCount = appointments.filter(apt => apt.status === 'pending').length;
   const confirmedCount = appointments.filter(apt => apt.status === 'confirmed').length;
 
   return (
-    <div className="doctor-dashboard-container">
-      <header className="doctor-header">
-        <div className="doctor-welcome">
-          <h1>Doctor's Dashboard</h1>
-          <p>{user?.email}</p>
+    <div className="dashboard-container">
+      <nav className="navbar">
+        <h1>HCL HealthLink</h1>
+        <div className="nav-links">
+          <button className="logout-btn" onClick={onLogout}>
+            Logout
+          </button>
         </div>
-        <button className="logout-btn" onClick={onLogout}>
-          Logout
-        </button>
-      </header>
+      </nav>
 
-      {error && <div className="error-message">{error}</div>}
+      <div className="dashboard-content">
+        {error && <div className="error-message">{error}</div>}
 
-      <div className="stats-section">
-        <div className="stat-card">
-          <div className="stat-number">{pendingCount}</div>
-          <div className="stat-label">Pending Appointments</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">{confirmedCount}</div>
-          <div className="stat-label">Confirmed Appointments</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">{appointments.length}</div>
-          <div className="stat-label">Total Appointments</div>
-        </div>
-      </div>
+        {loading ? (
+          <div className="loading-message">Loading appointments...</div>
+        ) : (
+          <>
+            {/* Pending Requests Section */}
+            {pendingAppointments.length > 0 && (
+              <section className="appointments-section health-info-section">
+                <h2><strong>⏳ Pending Requests</strong></h2>
+                <div className="appointments-grid">
+                  {pendingAppointments.map((appointment) => (
+                    <div key={appointment.id} className="appointment-card">
+                      <div className="appointment-card-top">
+                        <span className={getStatusBadgeClass(appointment.status)}>
+                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        </span>
+                        <div className="appointment-time">
+                          {formatDate(appointment.appointment_date)}
+                        </div>
+                      </div>
 
-      {loading ? (
-        <div className="loading-message">Loading appointments...</div>
-      ) : (
-        <>
-          {upcomingAppointments.length > 0 && (
-            <section className="appointments-section">
-              <h2>📅 Upcoming Appointments</h2>
-              <div className="appointments-grid">
-                {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="appointment-card">
-                    <div className="appointment-card-top">
-                      <span className={getStatusBadgeClass(appointment.status)}>
-                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                      </span>
-                      <div className="appointment-time">
-                        {formatDate(appointment.appointment_date)}
+                      <div className="appointment-card-content">
+                        <div className="patient-info">
+                          <strong>Patient Email:</strong> {appointment.patient_email}
+                        </div>
+                        {appointment.reason && (
+                          <div className="patient-reason">
+                            <strong>Reason:</strong> {appointment.reason}
+                          </div>
+                        )}
+                        {appointment.notes && (
+                          <div className="doctor-notes">
+                            <strong>Notes:</strong> {appointment.notes}
+                          </div>
+                        )}
+                        {renderPatientStats(appointment)}
+                      </div>
+
+                      <div className="appointment-card-footer">
+                        <button
+                          className="action-btn update-btn"
+                          onClick={() => handleOpenUpdateModal(appointment)}
+                        >
+                          Update Status
+                        </button>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
-                    <div className="appointment-card-content">
-                      <div className="patient-info">
-                        <strong>Patient Email:</strong> {appointment.patient_email}
+            {/* Confirmed Appointments Section */}
+            {confirmedAppointments.length > 0 && (
+              <section className="appointments-section health-info-section">
+                <h2><strong>✓ Confirmed Appointments</strong></h2>
+                <div className="appointments-grid">
+                  {confirmedAppointments.map((appointment) => (
+                    <div key={appointment.id} className="appointment-card">
+                      <div className="appointment-card-top">
+                        <span className={getStatusBadgeClass(appointment.status)}>
+                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        </span>
+                        <div className="appointment-time">
+                          {formatDate(appointment.appointment_date)}
+                        </div>
                       </div>
-                      {appointment.reason && (
-                        <div className="patient-reason">
-                          <strong>Reason:</strong> {appointment.reason}
-                        </div>
-                      )}
-                      {appointment.notes && (
-                        <div className="doctor-notes">
-                          <strong>Notes:</strong> {appointment.notes}
-                        </div>
-                      )}
-                    </div>
 
-                    <div className="appointment-card-footer">
-                      <button
-                        className="action-btn update-btn"
-                        onClick={() => handleOpenUpdateModal(appointment)}
-                      >
-                        Update Status
-                      </button>
+                      <div className="appointment-card-content">
+                        <div className="patient-info">
+                          <strong>Patient Email:</strong> {appointment.patient_email}
+                        </div>
+                        {appointment.reason && (
+                          <div className="patient-reason">
+                            <strong>Reason:</strong> {appointment.reason}
+                          </div>
+                        )}
+                        {appointment.notes && (
+                          <div className="doctor-notes">
+                            <strong>Notes:</strong> {appointment.notes}
+                          </div>
+                        )}
+                        {renderPatientStats(appointment)}
+                      </div>
+
+                      <div className="appointment-card-footer">
+                        <button
+                          className="action-btn update-btn"
+                          onClick={() => handleOpenUpdateModal(appointment)}
+                        >
+                          Update Status
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Completed Appointments Section */}
+            {completedAppointments.length > 0 && (
+              <section className="appointments-section health-info-section">
+                <h2><strong>🎉 Completed Appointments</strong></h2>
+                <div className="appointments-grid">
+                  {completedAppointments.map((appointment) => (
+                    <div key={appointment.id} className="appointment-card">
+                      <div className="appointment-card-top">
+                        <span className={getStatusBadgeClass(appointment.status)}>
+                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        </span>
+                        <div className="appointment-time">
+                          {formatDate(appointment.appointment_date)}
+                        </div>
+                      </div>
+
+                      <div className="appointment-card-content">
+                        <div className="patient-info">
+                          <strong>Patient Email:</strong> {appointment.patient_email}
+                        </div>
+                        {appointment.reason && (
+                          <div className="patient-reason">
+                            <strong>Reason:</strong> {appointment.reason}
+                          </div>
+                        )}
+                        {appointment.notes && (
+                          <div className="doctor-notes">
+                            <strong>Notes:</strong> {appointment.notes}
+                          </div>
+                        )}
+                        {renderPatientStats(appointment)}
+                      </div>
+
+                      <div className="appointment-card-footer">
+                        <button
+                          className="action-btn update-btn"
+                          onClick={() => handleOpenUpdateModal(appointment)}
+                        >
+                          Update Status
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Cancelled Appointments Section */}
+            {cancelledAppointments.length > 0 && (
+              <section className="appointments-section health-info-section">
+                <h2><strong>✕ Cancelled Appointments</strong></h2>
+                <div className="appointments-grid">
+                  {cancelledAppointments.map((appointment) => (
+                    <div key={appointment.id} className="appointment-card">
+                      <div className="appointment-card-top">
+                        <span className={getStatusBadgeClass(appointment.status)}>
+                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        </span>
+                        <div className="appointment-time">
+                          {formatDate(appointment.appointment_date)}
+                        </div>
+                      </div>
+
+                      <div className="appointment-card-content">
+                        <div className="patient-info">
+                          <strong>Patient Email:</strong> {appointment.patient_email}
+                        </div>
+                        {appointment.reason && (
+                          <div className="patient-reason">
+                            <strong>Reason:</strong> {appointment.reason}
+                          </div>
+                        )}
+                        {appointment.notes && (
+                          <div className="doctor-notes">
+                            <strong>Notes:</strong> {appointment.notes}
+                          </div>
+                        )}
+                        {renderPatientStats(appointment)}
+                      </div>
+
+                      <div className="appointment-card-footer">
+                        <button
+                          className="action-btn update-btn"
+                          onClick={() => handleOpenUpdateModal(appointment)}
+                        >
+                          Update Status
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {appointments.length === 0 && (
+              <div className="no-appointments">
+                <p>No appointments booked yet.</p>
               </div>
-            </section>
-          )}
+            )}
+          </>
+        )}
 
-          {pastAppointments.length > 0 && (
-            <section className="appointments-section past-section">
-              <h2>✓ Past Appointments</h2>
-              <div className="appointments-grid">
-                {pastAppointments.slice(0, 5).map((appointment) => (
-                  <div key={appointment.id} className="appointment-card past-card">
-                    <div className="appointment-card-top">
-                      <span className={getStatusBadgeClass(appointment.status)}>
-                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                      </span>
-                      <div className="appointment-time">
-                        {formatDate(appointment.appointment_date)}
-                      </div>
-                    </div>
-
-                    <div className="appointment-card-content">
-                      <div className="patient-info">
-                        <strong>Patient Email:</strong> {appointment.patient_email}
-                      </div>
-                      {appointment.reason && (
-                        <div className="patient-reason">
-                          <strong>Reason:</strong> {appointment.reason}
-                        </div>
-                      )}
-                      {appointment.notes && (
-                        <div className="doctor-notes">
-                          <strong>Notes:</strong> {appointment.notes}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {appointments.length === 0 && (
-            <div className="no-appointments">
-              <p>No appointments booked yet.</p>
-            </div>
-          )}
-        </>
-      )}
-
-      {showUpdateModal && selectedAppointment && (
+        {showUpdateModal && selectedAppointment && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
@@ -281,7 +419,8 @@ function DoctorDashboard({ onLogout }) {
             </div>
           </div>
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

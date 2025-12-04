@@ -5,9 +5,14 @@
   box-sizing: border-box;
 }
 
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #d9d9d9;
+  background-color: #f3e8ff;
 }
 
 .app-container {
@@ -21,7 +26,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   font-size: 20px;
-  color: #666;
+  color: #7c3aed;
 }
 
 /* Login Form Styles */
@@ -32,26 +37,28 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 5px rgba(124, 58, 237, 0.1);
 }
 
 .logo-placeholder {
   width: 150px;
   height: 150px;
-  background: #d3d3d3;
+  background: #ddd6fe;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  color: #999;
+  color: #9333ea;
   font-size: 14px;
+  display: none;
 }
 
 .login-container h2 {
   margin-bottom: 30px;
-  color: #555;
+  color: #6b46c1;
   font-size: 32px;
   font-weight: 400;
+  margin-top: 0;
 }
 
 .error-message {
@@ -117,7 +124,7 @@ body {
 .toggle-link {
   background: none;
   border: none;
-  color: #5a5a5a;
+  color: #7c3aed;
   cursor: pointer;
   text-decoration: underline;
   font-size: 14px;
@@ -126,12 +133,12 @@ body {
 }
 
 .toggle-link:hover {
-  color: #333;
+  color: #6b46c1;
 }
 
 .login-btn {
   padding: 14px;
-  background: #5a5a5a;
+  background: #7c3aed;
   color: white;
   border: none;
   border-radius: 4px;
@@ -142,7 +149,7 @@ body {
 }
 
 .login-btn:hover:not(:disabled) {
-  background: #404040;
+  background: #6b46c1;
 }
 
 .login-btn:disabled {
@@ -158,7 +165,7 @@ body {
 }
 
 .forgot-link:hover {
-  color: #666;
+  color: #7c3aed;
 }
 
 .register-link {
@@ -170,24 +177,23 @@ body {
 /* Preview Section (when not logged in) */
 .preview-section {
   flex: 1;
-  background: #e5e5e5;
+  background: linear-gradient(rgba(124, 58, 237, 0.4), rgba(99, 102, 241, 0.4)), url('/src/assets/background.jpg') center/cover;
   position: relative;
-}
-
-.preview-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 24px;
+  min-height: 100vh;
+}
+
+.preview-overlay {
   text-align: center;
-  padding: 20px;
+  color: white;
+}
+
+.preview-overlay h2 {
+  font-size: 48px;
+  margin: 0;
+  font-weight: 300;
 }
 
 /* Dashboard Styles */
@@ -195,17 +201,22 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #d9d9d9;
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(rgba(243, 232, 255, 0.95), rgba(243, 232, 255, 0.95)), 
+              url('/src/assets/background.jpg') center/cover fixed;
 }
 
 .navbar {
-  background: #5a5a5a;
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
   color: white;
   padding: 25px 50px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(124, 58, 237, 0.2);
+  position: relative;
+  z-index: 10;
 }
 
 .navbar h1 {
@@ -255,19 +266,39 @@ body {
 
 .logout-btn:hover {
   background: white;
-  color: #5a5a5a;
+  color: #7c3aed;
 }
 
 .dashboard-content {
   padding: 50px;
   max-width: 1200px;
+  position: relative;
+  z-index: 1;
 }
 
 .dashboard-content h2 {
   margin-bottom: 30px;
   color: #333;
   font-size: 28px;
-  font-weight: 400;
+  font-weight: 700;
+}
+
+.health-info-section {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
+  margin-bottom: 40px;
+}
+
+.health-info-section h2 {
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 28px;
+  font-weight: 700;
 }
 
 .cards-container {
@@ -280,7 +311,7 @@ body {
   background: white;
   padding: 30px;
   border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
 }
 
 .info-card h3 {
@@ -299,7 +330,7 @@ body {
 
 .read-more-btn {
   padding: 10px 24px;
-  background: #5a5a5a;
+  background: #7c3aed;
   color: white;
   border: none;
   border-radius: 4px;
@@ -309,7 +340,7 @@ body {
 }
 
 .read-more-btn:hover {
-  background: #404040;
+  background: #6b46c1;
 }
 
 /* Responsive Design */

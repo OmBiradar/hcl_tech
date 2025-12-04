@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import './AppointmentBooking.css';
 
-function AppointmentBooking({ onBackToDashboard }) {
+function AppointmentBooking({ onBackToDashboard, onNavigateToHome, onNavigateToMyAppointments, onLogout }) {
   const { user } = useAuth();
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState('');
@@ -15,6 +15,17 @@ function AppointmentBooking({ onBackToDashboard }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [doctorDetails, setDoctorDetails] = useState(null);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [patientStats, setPatientStats] = useState({
+    steps: '',
+    activeTime: '',
+    calories: '',
+    distance: '',
+    sleepHours: '',
+    sleepMinutes: '',
+    sleepStartTime: '',
+    sleepEndTime: ''
+  });
 
   // Fetch all doctors on component mount
   useEffect(() => {
@@ -56,6 +67,35 @@ function AppointmentBooking({ onBackToDashboard }) {
       return;
     }
 
+    // Show stats modal before submitting
+    setShowStatsModal(true);
+  };
+
+  const handleStatsInputChange = (e) => {
+    const { name, value } = e.target;
+    setPatientStats(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmitWithStats = async () => {
+    // Validate stats
+    if (!patientStats.steps || !patientStats.activeTime || !patientStats.calories || !patientStats.distance) {
+      setError('Please fill in all activity stats');
+      return;
+    }
+
+    if (!patientStats.sleepHours || !patientStats.sleepMinutes) {
+      setError('Please fill in sleep duration');
+      return;
+    }
+
+    if (!patientStats.sleepStartTime || !patientStats.sleepEndTime) {
+      setError('Please fill in sleep time range');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
@@ -67,6 +107,7 @@ function AppointmentBooking({ onBackToDashboard }) {
         provider_id: selectedDoctor,
         appointment_date: dateTime,
         reason: reason || '',
+        patient_stats: patientStats,
       });
 
       setSuccess('Appointment booked successfully! The doctor will confirm your appointment shortly.');
@@ -76,6 +117,17 @@ function AppointmentBooking({ onBackToDashboard }) {
       setAppointmentDate('');
       setAppointmentTime('');
       setReason('');
+      setPatientStats({
+        steps: '',
+        activeTime: '',
+        calories: '',
+        distance: '',
+        sleepHours: '',
+        sleepMinutes: '',
+        sleepStartTime: '',
+        sleepEndTime: ''
+      });
+      setShowStatsModal(false);
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000);
@@ -92,18 +144,29 @@ function AppointmentBooking({ onBackToDashboard }) {
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="appointment-booking-container">
-      <div className="booking-header">
-        <h2>Book an Appointment</h2>
-        <button className="back-btn" onClick={onBackToDashboard}>
-          ← Back to Dashboard
-        </button>
-      </div>
+    <div className="dashboard-container">
+      <nav className="navbar">
+        <h1>HCL HealthLink</h1>
+        <div className="nav-links">
+          <button onClick={onNavigateToHome}>Home</button>
+          <button className="active" onClick={onBackToDashboard}>
+            Book Appointment
+          </button>
+          <button onClick={onNavigateToMyAppointments}>
+            My Appointments
+          </button>
+          <button onClick={onLogout} className="logout-btn">Logout</button>
+        </div>
+      </nav>
 
-      {error && <div className="error-message">{error}</div>}
-      {success && <div className="success-message">{success}</div>}
+      <div className="dashboard-content">
+        <div className="health-info-section">
+          <h2><strong>Book an Appointment</strong></h2>
 
-      <form onSubmit={handleSubmit} className="booking-form">
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
+        <form onSubmit={handleSubmit} className="booking-form">
         <div className="form-group">
           <label htmlFor="doctor">Select Doctor *</label>
           <select
@@ -116,7 +179,7 @@ function AppointmentBooking({ onBackToDashboard }) {
             <option value="">Choose a doctor...</option>
             {doctors.map((doctor) => (
               <option key={doctor.user_id} value={doctor.user_id}>
-                {doctor.specialty} - {doctor.clinic_address || 'Location not specified'}
+                {doctor.specialty} | {doctor.doctor_name} | {doctor.clinic_address || 'Location not specified'}
               </option>
             ))}
           </select>
@@ -181,6 +244,161 @@ function AppointmentBooking({ onBackToDashboard }) {
           {loading ? 'Booking...' : 'Book Appointment'}
         </button>
       </form>
+        </div>
+
+        {showStatsModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3>Your Physical Stats</h3>
+                <p>Please enter your current physical stats before completing your booking</p>
+              </div>
+
+              <div className="modal-body">
+                {error && <div className="error-message">{error}</div>}
+
+                {/* Activity Stats Section */}
+                <div className="stats-group">
+                  <h4>Activity Stats</h4>
+                  
+                  <div className="form-group">
+                    <label htmlFor="steps">Steps</label>
+                    <div className="input-with-unit">
+                      <input
+                        type="number"
+                        id="steps"
+                        name="steps"
+                        value={patientStats.steps}
+                        onChange={handleStatsInputChange}
+                        placeholder="Enter steps"
+                        min="0"
+                      />
+                      <span className="unit">steps</span>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="activeTime">Active Time</label>
+                    <div className="input-with-unit">
+                      <input
+                        type="number"
+                        id="activeTime"
+                        name="activeTime"
+                        value={patientStats.activeTime}
+                        onChange={handleStatsInputChange}
+                        placeholder="Enter minutes"
+                        min="0"
+                      />
+                      <span className="unit">mins</span>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="calories">Calories Burned</label>
+                    <div className="input-with-unit">
+                      <input
+                        type="number"
+                        id="calories"
+                        name="calories"
+                        value={patientStats.calories}
+                        onChange={handleStatsInputChange}
+                        placeholder="Enter calories"
+                        min="0"
+                      />
+                      <span className="unit">kcal</span>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="distance">Distance Traveled</label>
+                    <div className="input-with-unit">
+                      <input
+                        type="number"
+                        id="distance"
+                        name="distance"
+                        value={patientStats.distance}
+                        onChange={handleStatsInputChange}
+                        placeholder="Enter distance"
+                        min="0"
+                        step="0.01"
+                      />
+                      <span className="unit">km</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sleep Stats Section */}
+                <div className="stats-group">
+                  <h4>Sleep Stats</h4>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="sleepHours">Sleep Duration - Hours</label>
+                      <input
+                        type="number"
+                        id="sleepHours"
+                        name="sleepHours"
+                        value={patientStats.sleepHours}
+                        onChange={handleStatsInputChange}
+                        placeholder="Hours"
+                        min="0"
+                        max="24"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="sleepMinutes">Minutes</label>
+                      <input
+                        type="number"
+                        id="sleepMinutes"
+                        name="sleepMinutes"
+                        value={patientStats.sleepMinutes}
+                        onChange={handleStatsInputChange}
+                        placeholder="Minutes"
+                        min="0"
+                        max="59"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="sleepStartTime">Sleep Time - From</label>
+                      <input
+                        type="time"
+                        id="sleepStartTime"
+                        name="sleepStartTime"
+                        value={patientStats.sleepStartTime}
+                        onChange={handleStatsInputChange}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="sleepEndTime">To</label>
+                      <input
+                        type="time"
+                        id="sleepEndTime"
+                        name="sleepEndTime"
+                        value={patientStats.sleepEndTime}
+                        onChange={handleStatsInputChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="cancel-btn" onClick={() => setShowStatsModal(false)}>
+                  Cancel
+                </button>
+                <button className="save-btn" onClick={handleSubmitWithStats} disabled={loading}>
+                  {loading ? 'Booking...' : 'Complete Booking'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
