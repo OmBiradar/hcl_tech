@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const LoginForm = () => {
+const LoginForm = ({ onToggleForm }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,7 +17,7 @@ const LoginForm = () => {
     const result = await login(email, password);
     
     if (!result.success) {
-      setError('Invalid credentials. Please try again.');
+      setError(result.error || 'Invalid credentials. Please try again.');
     }
     
     setLoading(false);
@@ -51,7 +51,16 @@ const LoginForm = () => {
       </form>
       
       <a href="#" className="forgot-link">Forgot Password?</a>
-      <p className="register-link">New User? Register here</p>
+      <p className="register-link">
+        New User?
+        <button 
+          type="button" 
+          className="toggle-link" 
+          onClick={onToggleForm}
+        >
+          Register here
+        </button>
+      </p>
     </div>
   );
 };

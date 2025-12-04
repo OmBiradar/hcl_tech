@@ -26,29 +26,43 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // Mock API call - replace with your actual API endpoint
-      // const response = await axios.post('https://your-api.com/login', { email, password });
+      const response = await axios.post('/api/auth/login/', { email, password });
       
-      // Simulating API response
-      const mockResponse = {
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-        user: {
-          id: 1,
-          email: email,
-          name: 'John Doe'
-        }
+      const { token, role } = response.data;
+      const userData = {
+        email: email,
+        role: role
       };
 
-      localStorage.setItem('token', mockResponse.token);
-      localStorage.setItem('user', JSON.stringify(mockResponse.user));
-      setUser(mockResponse.user);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       
       // Set default authorization header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${mockResponse.token}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: error.response?.data?.error || error.message };
+    }
+  };
+
+  const register = async (email, password, role = 'patient', consentGiven = false) => {
+    try {
+      const response = await axios.post('/api/auth/register/', {
+        email,
+        password,
+        role,
+        consent_given: consentGiven
+      });
+      
+      // Auto-login after successful registration
+      return await login(email, password);
+    } catch (error) {
+      const errorMessage = error.response?.data?.error?.email 
+        ? 'Email already registered' 
+        : error.response?.data?.error || 'Registration failed';
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -60,7 +74,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
       {children}
     </AuthContext.Provider>
   );
