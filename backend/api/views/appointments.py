@@ -98,6 +98,43 @@ class AppointmentCreateView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             
+            # Validate appointment is within doctor's available hours
+            provider_profile = ProviderProfile.objects(user_id=str(provider.id)).first()
+            if provider_profile and provider_profile.available_hours:
+                # Get day of week name
+                day_name = apt_date.strftime('%A')
+                
+                # Check if doctor works on this day
+                if day_name not in provider_profile.available_hours:
+                    return Response(
+                        {'error': f'Doctor is not available on {day_name}s'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Get doctor's available hours for this day
+                available_time_range = provider_profile.available_hours[day_name]
+                start_time_str, end_time_str = available_time_range.split('-')
+                
+                # Parse available hours
+                start_hour, start_min = map(int, start_time_str.split(':'))
+                end_hour, end_min = map(int, end_time_str.split(':'))
+                
+                # Get appointment hour and minute
+                apt_hour = apt_date.hour
+                apt_min = apt_date.minute
+                
+                # Convert to minutes for comparison
+                apt_minutes = apt_hour * 60 + apt_min
+                start_minutes = start_hour * 60 + start_min
+                end_minutes = end_hour * 60 + end_min
+                
+                # Check if appointment time is within available hours
+                if apt_minutes < start_minutes or apt_minutes >= end_minutes:
+                    return Response(
+                        {'error': f'Doctor is only available from {start_time_str} to {end_time_str} on {day_name}s'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
             # Check for duplicate appointments (same patient, doctor, time)
             existing_apt = Appointment.objects(
                 patient_id=str(user.id),
