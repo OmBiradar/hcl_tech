@@ -60,7 +60,24 @@ services:
     networks:
       - healthcare-network
     volumes:
-      - mongo-data:/data/db
+      - mongo-/data/db
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express
+    container_name: healthcare-mongo-express
+    depends_on:
+      - mongodb
+    networks:
+      - healthcare-network
+    ports:
+      - "8081:8081"
+    environment:
+      # connect to mongodb service by its service name
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017/healthcare
+      # optional: basic auth for the web UI
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
     restart: unless-stopped
 
 networks:
