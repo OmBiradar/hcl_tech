@@ -1,5 +1,6 @@
 version: '3.8'
 
+
 services:
   backend:
     build:
@@ -32,6 +33,7 @@ services:
       retries: 5
       start_period: 30s
 
+
   frontend:
     build:
       context: ./frontend
@@ -52,6 +54,7 @@ services:
     command: sh -c "npm install && npm run dev -- --host"
     restart: unless-stopped
 
+
   mongodb:
     image: mongo:6.0
     container_name: healthcare-mongodb
@@ -60,8 +63,9 @@ services:
     networks:
       - healthcare-network
     volumes:
-      - mongo-/data/db
+      - mongo-data:/data/db
     restart: unless-stopped
+
 
   mongo-express:
     image: mongo-express
@@ -80,9 +84,11 @@ services:
       - ME_CONFIG_BASICAUTH_PASSWORD=admin
     restart: unless-stopped
 
+
 networks:
   healthcare-network:
     driver: bridge
+
 
 volumes:
   mongo-data:
