@@ -19,7 +19,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-secret-key-change-in-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -65,17 +65,22 @@ DATABASES = {
 }
 
 # MongoDB Configuration
-MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-DATABASE_NAME = 'healthcare_portal'
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://mongodb:27017/healthcare')
+DATABASE_NAME = 'healthcare'
 
 # MongoEngine Configuration
 import mongoengine as me
-me.connect(
-    db=DATABASE_NAME,
-    host=MONGO_URI,
-    connect=False,  # Lazy connection
-    serverSelectionTimeoutMS=5000,
-)
+try:
+    me.connect(
+        db=DATABASE_NAME,
+        host=MONGO_URI,
+        connect=False,  # Lazy connection
+        serverSelectionTimeoutMS=5000,
+        tz_aware=True,
+    )
+except Exception as e:
+    print(f'MongoDB connection warning: {str(e)}')
+    # Continue anyway, connection will be attempted on first use
 
 # Django REST Framework Configuration
 REST_FRAMEWORK = {
@@ -100,6 +105,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:3000',
     'http://frontend-service',
     'http://frontend',
+    'http://frontend:5173',
 ]
 
 CORS_ALLOW_CREDENTIALS = True

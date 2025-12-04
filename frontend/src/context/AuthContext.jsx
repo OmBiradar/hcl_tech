@@ -4,6 +4,12 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
+// Configure axios base URL from environment
+// In Docker: uses relative paths, Vite proxy handles /api routing
+// In local dev: uses relative paths
+const API_URL = '/';
+axios.defaults.baseURL = API_URL;
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +22,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const userData = JSON.parse(localStorage.getItem('user'));
         setUser(userData);
+        // Set authorization header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       } catch (error) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -38,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
-      // Set default authorization header
+      // Set authorization header
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       return { success: true };

@@ -55,7 +55,7 @@ hcl_tech/
 # 1. Navigate to project
 cd /path/to/hcl_tech
 
-# 2. Start all services
+# 2. Start all services (creates .env files from examples on first run)
 docker-compose up -d
 
 # 3. Verify services are running
@@ -65,8 +65,8 @@ docker-compose ps
 ### Access the Application
 
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5000
-- **Database**: MongoDB cloud
+- **Backend API**: http://localhost:8000
+- **Database**: localhost:27017 (MongoDB)
 
 ### View Logs & Stop
 
@@ -126,7 +126,7 @@ docker-compose down -v  # Remove all data
                        │ (JWT Auth)
                        ↓
 ┌─────────────────────────────────────────────────────────┐
-│ Backend (Django REST) - Port 5000                       │
+│ Backend (Django REST) - Port 8000                       │
 │ ├─ Authentication API                                   │
 │ ├─ Patient CRUD                                         │
 │ ├─ Provider Management                                  │
@@ -146,7 +146,7 @@ docker-compose down -v  # Remove all data
 
 | Service | Port | Technology |
 |---------|------|------------|
-| Backend | 5000 | Django REST |
+| Backend | 8000 | Django REST |
 | Frontend | 5173 | React + Vite |
 | Database | 27017 | MongoDB |
 
@@ -156,10 +156,10 @@ docker-compose down -v  # Remove all data
 ```env
 DEBUG=True
 SECRET_KEY=your-secret-key
-MONGO_URI=mongodb://mongodb:27017/healthcare_portal
+MONGO_URI=mongodb://mongodb:27017/healthcare
 ```
 
 **Frontend (via Vite)**
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:8000
 ```
